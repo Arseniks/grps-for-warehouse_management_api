@@ -24,3 +24,8 @@
 
 # Go workspace file
 go.work
+
+# Distribution / packaging
+.env
+env/
+ENV/
