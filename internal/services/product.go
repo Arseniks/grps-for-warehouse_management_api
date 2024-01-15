@@ -91,8 +91,7 @@ func (p *ProductService) CancelProductReservation(codes []uuid.UUID, warehouseID
 			log.Println(
 				"Failed canceling products in the amount of",
 				strconv.FormatUint(uint64(values[i]), 10),
-				"with product_code="+val.String(),
-				"; error:", err,
+				"with product_code="+val.String()+"; error:", err,
 			)
 
 			ok = append(ok, err)

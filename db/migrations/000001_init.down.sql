@@ -1,0 +1,3 @@
+DROP TABLE products CASCADE;
+
+DROP TABLE warehouses CASCADE;
