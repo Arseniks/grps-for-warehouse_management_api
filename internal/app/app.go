@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/service"
+	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/services"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/rpc"
 	"github.com/gorilla/rpc/json"
@@ -32,7 +32,7 @@ func (a *App) Run() {
 	server := rpc.NewServer()
 
 	server.RegisterCodec(json.NewCodec(), "application/json")
-	err := server.RegisterService(service.NewWarehouseManagementService(), "")
+	err := server.RegisterService(services.NewWarehouseManagementService(a.storage), "")
 	if err != nil {
 		log.Fatal(err)
 	}
