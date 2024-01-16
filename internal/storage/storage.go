@@ -44,7 +44,9 @@ func GetDBConnection(cfg *PostgresConfig) (*sql.DB, error) {
 			cfg.User,
 			cfg.DBName,
 			cfg.Password,
-			cfg.SSLMode))
+			cfg.SSLMode,
+		),
+	)
 	if err != nil {
 		return nil, err
 	}
