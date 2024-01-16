@@ -11,6 +11,10 @@ git clone https://github.com/Arseniks/jsonrpc_warehouse_management_api
 cd jsonrpc_warehouse_management_api
 ```
 
+## Документация
+
+    Документация по аргументации использованных зависимостей лежит в директории docs
+
 ## Запуск проекта
 
 ### Скачать дополнительные зависимости при отсутствии
