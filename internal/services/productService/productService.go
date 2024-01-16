@@ -5,7 +5,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/services/models"
+	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/models"
 	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/storage"
 	"github.com/google/uuid"
 )
@@ -55,6 +55,7 @@ func (p *ProductService) ReservationProducts(codes []uuid.UUID, warehouseID uint
 	if len(codes) != len(values) {
 		return errors.New("different len product codes and values")
 	}
+
 	ok := make([]error, 0, len(codes))
 
 	for i, val := range codes {

@@ -3,7 +3,7 @@ package services
 import (
 	"errors"
 
-	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/services/models"
+	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/models"
 	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/storage"
 )
 
