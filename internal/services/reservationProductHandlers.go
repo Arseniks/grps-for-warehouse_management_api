@@ -14,11 +14,11 @@ type ReservationArgs struct {
 	WarehouseID uint
 }
 
-func (s *WarehouseManagementService) ReservationProduct(_ *http.Request, args *ReservationArgs, response *Response) error {
+func (s *WarehouseManagementService) ReservationProductHandler(_ *http.Request, args *ReservationArgs, response *Response) error {
 	log.Println("Starting to reservation products")
 
 	if err := s.Product.ReservationProducts(args.Codes, args.WarehouseID, args.Value); err != nil {
-		return fmt.Errorf("reservation products has failed; error:  %e", err)
+		return fmt.Errorf("reservation products has failed; error:  %s", err)
 	}
 
 	response.Message = "Done"
@@ -28,7 +28,7 @@ func (s *WarehouseManagementService) ReservationProduct(_ *http.Request, args *R
 	return nil
 }
 
-func (s *WarehouseManagementService) CancelProductReservation(_ *http.Request, args *ReservationArgs, response *Response) error {
+func (s *WarehouseManagementService) CancelProductReservationHandler(_ *http.Request, args *ReservationArgs, response *Response) error {
 	log.Println("Starting to canceling products reservation")
 
 	err := s.Product.CancelProductReservation(args.Codes, args.WarehouseID, args.Value)

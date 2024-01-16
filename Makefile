@@ -3,7 +3,7 @@ include .env
 service-build:
 	docker-compose build
 
-service-up: service-build
+up: service-build
 	docker-compose up
 
 up_migrations:

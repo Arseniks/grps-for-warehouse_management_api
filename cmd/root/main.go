@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Arseniks/jsonrpc_warehouse_management_api/cmd/config"
+	"github.com/Arseniks/jsonrpc_warehouse_management_api/config"
 	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/app"
 	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/storage"
 )

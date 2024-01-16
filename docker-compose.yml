@@ -20,7 +20,6 @@ services:
     restart: unless-stopped
 
   db:
-    restart: always
     container_name: db
     image: postgres:15
     env_file:
@@ -33,6 +32,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    restart: always
 
 volumes:
   pgdata: { }

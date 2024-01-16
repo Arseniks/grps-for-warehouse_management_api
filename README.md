@@ -11,7 +11,6 @@ git clone https://github.com/Arseniks/jsonrpc_warehouse_management_api
 cd jsonrpc_warehouse_management_api
 ```
 
-
 ## Запуск проекта
 
 ### Скачать дополнительные зависимости при отсутствии
@@ -27,10 +26,13 @@ cp .env.template .env
 
 ### Выполнить команду для запуска проекта и готовой инфраструктуры в Docker
 ```bash
-make service-up
+make up
 ```
 
 ### Выполнить команду для установки миграций БД
 ```bash
 make up_migrations
 ```
+
+## Коллекция Postman для тестирования работы API
+[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/10955370-c2092ad9-10b8-49f5-a6e1-92d457fd81b0?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D10955370-c2092ad9-10b8-49f5-a6e1-92d457fd81b0%26entityType%3Dcollection%26workspaceId%3D6cf96601-bbe6-4949-a625-a9b929779df5)

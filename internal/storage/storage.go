@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/services/models"
+	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/models"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )

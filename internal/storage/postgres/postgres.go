@@ -1,4 +1,4 @@
-package storage
+package postgres
 
 import (
 	"database/sql"
@@ -6,17 +6,18 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/services/models"
+	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/models"
+	"github.com/Arseniks/jsonrpc_warehouse_management_api/internal/storage"
 	"github.com/google/uuid"
 )
 
-type DB struct {
+type Postgres struct {
 	client    *sql.DB
 	tableName string
 }
 
-func NewPostgresDB(client *sql.DB, tableName string) Storage {
-	postgresDB := DB{
+func NewPostgresDB(client *sql.DB, tableName string) storage.Storage {
+	postgresDB := Postgres{
 		client:    client,
 		tableName: tableName,
 	}
@@ -24,14 +25,15 @@ func NewPostgresDB(client *sql.DB, tableName string) Storage {
 	return &postgresDB
 }
 
-func (p *DB) CreateNewProduct(name string, size string, value uint, code uuid.UUID, warehouseID uint) (*uuid.UUID, error) {
+func (p *Postgres) CreateNewProduct(name string, size string, value uint, code uuid.UUID, warehouseID uint) (*uuid.UUID, error) {
 	transaction, err := p.client.Begin()
 	if err != nil {
 		return nil, err
 	}
 
 	createItemQuery := fmt.Sprintf(
-		`INSERT INTO %s (product_name, product_size, product_value, product_code, warehouse_id, product_reserved_value) VALUES ($1, $2, $3, $4, $5, 0) RETURNING product_code`,
+		`INSERT INTO %s (product_name, product_size, product_value, product_code, warehouse_id, product_reserved_value) 
+		VALUES ($1, $2, $3, $4, $5, 0) RETURNING product_code`,
 		p.tableName,
 	)
 	row := transaction.QueryRow(createItemQuery, name, size, value, code, warehouseID)
@@ -56,7 +58,7 @@ func (p *DB) CreateNewProduct(name string, size string, value uint, code uuid.UU
 	return &productCode, nil
 }
 
-func (p *DB) GetProductByCode(code uuid.UUID) (*models.Product, error) {
+func (p *Postgres) GetProductByCode(code uuid.UUID) (*models.Product, error) {
 	query := fmt.Sprintf(
 		`SELECT product_code, product_name, product_size, product_value FROM %s WHERE product_code = $1`,
 		p.tableName,
@@ -72,9 +74,7 @@ func (p *DB) GetProductByCode(code uuid.UUID) (*models.Product, error) {
 	return &product, nil
 }
 
-func (p *DB) ReservationProduct(code uuid.UUID, warehouseID uint, value uint) error {
-	var query string
-
+func (p *Postgres) ReservationProduct(code uuid.UUID, warehouseID uint, value uint) error {
 	count, err := p.GetAvailableProductsCount(warehouseID, code)
 	if err != nil {
 		return err
@@ -89,11 +89,15 @@ func (p *DB) ReservationProduct(code uuid.UUID, warehouseID uint, value uint) er
 		return err
 	}
 
-	query = fmt.Sprintf(
-		`UPDATE %s SET product_reserved_value = (product_reserved_value + $1) WHERE product_code = $2 AND warehouse_id = $3`,
+	query := fmt.Sprintf(
+		`UPDATE %s SET product_reserved_value = (product_reserved_value + $1) 
+        WHERE product_code = $2 AND warehouse_id = $3`,
 		p.tableName,
 	)
 	_, err = transaction.Exec(query, value, code, warehouseID)
+	if err != nil {
+		return err
+	}
 
 	if err = transaction.Commit(); err != nil {
 		return err
@@ -102,7 +106,7 @@ func (p *DB) ReservationProduct(code uuid.UUID, warehouseID uint, value uint) er
 	return nil
 }
 
-func (p *DB) CancelProductReservation(code uuid.UUID, warehouseID uint, value uint) error {
+func (p *Postgres) CancelProductReservation(code uuid.UUID, warehouseID uint, value uint) error {
 	count, err := p.getReservedProductsCount(warehouseID, code)
 	if err != nil {
 		return err
@@ -117,8 +121,15 @@ func (p *DB) CancelProductReservation(code uuid.UUID, warehouseID uint, value ui
 		return err
 	}
 
-	query := fmt.Sprintf(`UPDATE %s SET product_reserved_value = (product_reserved_value - $1) WHERE product_code = $2 AND warehouse_id = $3`, p.tableName)
+	query := fmt.Sprintf(
+		`UPDATE %s SET product_reserved_value = (product_reserved_value - $1)
+        WHERE product_code = $2 AND warehouse_id = $3`,
+		p.tableName,
+	)
 	_, err = transaction.Exec(query, value, code, warehouseID)
+	if err != nil {
+		return err
+	}
 
 	if err = transaction.Commit(); err != nil {
 		return err
@@ -127,10 +138,13 @@ func (p *DB) CancelProductReservation(code uuid.UUID, warehouseID uint, value ui
 	return nil
 }
 
-func (p *DB) getReservedProductsCount(warehouseID uint, code uuid.UUID) (uint, error) {
-	query := fmt.Sprintf(`SELECT product_reserved_value FROM %s
-                                 INNER JOIN warehouses ON products.warehouse_id = warehouses.warehouse_id
-						         WHERE products.warehouse_id = $1 and warehouse_available and product_code = $2`, p.tableName)
+func (p *Postgres) getReservedProductsCount(warehouseID uint, code uuid.UUID) (uint, error) {
+	query := fmt.Sprintf(
+		`SELECT product_reserved_value FROM %s
+        INNER JOIN warehouses ON products.warehouse_id = warehouses.warehouse_id
+		WHERE products.warehouse_id = $1 and warehouse_available and product_code = $2`,
+		p.tableName,
+	)
 
 	var count uint
 	err := p.client.QueryRow(query, warehouseID, code).Scan(&count)
@@ -141,10 +155,13 @@ func (p *DB) getReservedProductsCount(warehouseID uint, code uuid.UUID) (uint, e
 	return count, nil
 }
 
-func (p *DB) GetAvailableProductsCount(warehouseID uint, code uuid.UUID) (uint, error) {
-	query := fmt.Sprintf(`SELECT (product_value - product_reserved_value) FROM %s
-                                 INNER JOIN warehouses ON products.warehouse_id = warehouses.warehouse_id
-						         WHERE products.warehouse_id = $1 and warehouse_available and product_code = $2`, p.tableName)
+func (p *Postgres) GetAvailableProductsCount(warehouseID uint, code uuid.UUID) (uint, error) {
+	query := fmt.Sprintf(
+		`SELECT (product_value - product_reserved_value) FROM %s
+        INNER JOIN warehouses ON products.warehouse_id = warehouses.warehouse_id
+		WHERE products.warehouse_id = $1 and warehouse_available and product_code = $2`,
+		p.tableName,
+	)
 
 	var count uint
 	err := p.client.QueryRow(query, warehouseID, code).Scan(&count)
@@ -155,7 +172,7 @@ func (p *DB) GetAvailableProductsCount(warehouseID uint, code uuid.UUID) (uint, 
 	return count, nil
 }
 
-func (p *DB) CreateNewWarehouse(name string, isAvailable bool) (uint, error) {
+func (p *Postgres) CreateNewWarehouse(name string, isAvailable bool) (uint, error) {
 	transaction, err := p.client.Begin()
 	if err != nil {
 		return 0, err
@@ -185,7 +202,7 @@ func (p *DB) CreateNewWarehouse(name string, isAvailable bool) (uint, error) {
 	return warehouseID, nil
 }
 
-func (p *DB) GetWarehouse(ID uint) (*models.Warehouse, error) {
+func (p *Postgres) GetWarehouse(ID uint) (*models.Warehouse, error) {
 	query := fmt.Sprintf(
 		`SELECT warehouse_id, warehouse_name, warehouse_available FROM %s WHERE warehouse_id = $1`,
 		p.tableName,
